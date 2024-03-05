@@ -1,0 +1,5 @@
+{{- if .Values.aadPodIdentity }}
+{{- include "ffc-helm-library.azure-identity-binding" (list . "ffc-ice-crm.azure-identity-binding") -}}
+{{- end }}
+{{- define "ffc-ice-crm.azure-identity-binding" -}}
+{{- end -}}

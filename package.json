@@ -1,8 +1,8 @@
 {
-  "name": "ffc-template-node",
+  "name": "ffc-ice-crm",
   "version": "0.1.0",
-  "description": "description-of-project-goes-here",
-  "homepage": "https://github.com/DEFRA/ffc-template-node",
+  "description": "CRM Microservice",
+  "homepage": "https://github.com/DEFRA/ffc-ice-crm",
   "main": "app/index.js",
   "scripts": {
     "pretest": "npm run test:lint",
@@ -10,21 +10,29 @@
     "test:watch": "jest --coverage=false --onlyChanged --watch --runInBand",
     "test:lint": "standard",
     "test:debug": "node --inspect-brk=0.0.0.0 ./node_modules/jest/bin/jest.js --coverage=false --onlyChanged --watch --runInBand --no-cache",
+    "start:dev": "SET NODE_ENV=development& nodemon --inspect=0.0.0.0 --ext js --legacy-watch app/index.js",
     "start:watch": "nodemon --inspect=0.0.0.0 --ext js --legacy-watch app/index.js",
-    "start:debug": "nodemon --inspect-brk=0.0.0.0 --ext js --legacy-watch app/index.js"
+    "start:debug": "nodemon --inspect-brk=0.0.0.0 --ext js --legacy-watch app/index.js",
+    "run:auth": "SET NODE_ENV=development& nodemon app/auth.js"
   },
   "author": "Defra",
   "contributors": [],
   "license": "OGL-UK-3.0",
   "dependencies": {
+    "@azure/identity": "^4.0.1",
+    "@azure/keyvault-secrets": "^4.8.0",
+    "@azure/msal-node": "^2.6.4",
+    "@azure/service-bus": "^7.9.4",
     "@hapi/hapi": "21.3.2",
-    "applicationinsights": "2.9.1"
+    "applicationinsights": "2.9.1",
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.4"
   },
   "devDependencies": {
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
     "nodemon": "3.0.1",
-    "standard": "17.1.0"
+    "standard": "^17.1.0"
   },
   "standard": {
     "globals": [

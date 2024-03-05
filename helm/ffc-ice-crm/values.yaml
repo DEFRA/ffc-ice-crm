@@ -1,9 +1,9 @@
 environment: production
 environmentCode:
-name: ffc-template-node
-namespace: ffc-demo
-workstream: ffc-demo
-image: ffc-template-node
+name: ffc-ice-crm
+namespace: ffc-ice
+workstream: ffc-ice
+image: ffc-ice-crm 
 
 labels:
   component: service
@@ -12,10 +12,10 @@ appInsights:
   connectionString:
 
 containerConfigMap:
-  name: ffc-template-node-config-map
+  name: ffc-ice-crm-config-map
 
 containerSecret:
-  name: ffc-template-node-container-secret
+  name: ffc-ice-crm-container-secret
   type: Opaque
 
 deployment: {}
@@ -26,6 +26,16 @@ container:
   limitMemory: 100Mi
   limitCpu: 100m
   port: 3000
+  serviceBusConnectionString:  
+  serviceBusHost: SNDFFCINFSB1001.servicebus.windows.net
+  serviceBusUsername: 
+  serviceBusPassword: 
+  caseDetailsQueue: ffc-rpi-bao-casedetails
+  crmApiHost:
+  crmApiUrl:
+  crmTenantID:
+  crmClientID:
+  crmClientSecret:
 
 livenessProbe:
   path: /healthz
@@ -42,3 +52,9 @@ readinessProbe:
   periodSeconds: 10
   failureThreshold: 3
   timeoutSeconds: 5
+
+aadPodIdentity: true
+
+azureIdentity:
+  clientID: not-a-real-clientID
+  resourceID: not-a-real-resourceID
