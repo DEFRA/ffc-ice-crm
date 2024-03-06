@@ -5,6 +5,8 @@ const CRMClient = require('./crm-client')
 
 const CONNECTION_RETRIES = 5
 const RETRY_DELAY = 5000
+const HEADER_SUBSTRING_START = 37
+const HEADER_SUBSTRING_END = 1
 
 class ServiceBusQueue {
   static instance
@@ -163,7 +165,10 @@ class ServiceBusQueue {
       const crmCase = await this.crmClient.createCase(organisationId, contactId)
       console.log('Case response', crmCase.status)
       const caseUrl = crmCase.headers['odata-entityid']
-      const caseId = caseUrl.substring(caseUrl.length - 37, caseUrl.length - 1)
+      caseId = caseUrl.substring(
+        caseUrl.length - HEADER_SUBSTRING_START,
+        caseUrl.length - HEADER_SUBSTRING_END
+      )
       console.log('Case ID', caseId)
       if (!caseId) {
         throw new Error('Could not find caseId')
