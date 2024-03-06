@@ -40,18 +40,18 @@ container:
 livenessProbe:
   path: /healthz
   port: 3000
-  initialDelaySeconds: 60
+  initialDelaySeconds: 20
   periodSeconds: 10
   failureThreshold: 3
-  timeoutSeconds: 30
+  timeoutSeconds: 5
 
 readinessProbe:
   path: /healthy
   port: 3000
-  initialDelaySeconds: 70
+  initialDelaySeconds: 30
   periodSeconds: 10
   failureThreshold: 3
-  timeoutSeconds: 30
+  timeoutSeconds: 5
 
 aadPodIdentity: true
 
