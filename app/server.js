@@ -3,8 +3,7 @@ const Hapi = require('@hapi/hapi')
 const routes = require('./routes')
 
 const server = Hapi.server({
-  port: process.env.PORT,
-  host: process.env.NODE_ENV === 'development' && 'localhost'
+  port: process.env.PORT
 })
 
 const serverRoutes = [].concat(

@@ -1,4 +1,4 @@
-require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` })
+require('dotenv').config()
 const server = require('./server')
 const ServiceBusQueue = require('./services/service-bus-queue')
 
