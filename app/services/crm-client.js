@@ -6,14 +6,10 @@ class CRMClient {
   api
 
   constructor () {
-    if (this.instance) {
-      return this.instance
+    if (!this.instance) {
+      this.instance = this
+      this.api = api
     }
-
-    this.instance = this
-    this.api = api
-
-    return true
   }
 
   async checkOrganisation (id) {

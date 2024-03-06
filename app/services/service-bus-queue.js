@@ -13,14 +13,10 @@ class ServiceBusQueue {
   crmClient
 
   constructor () {
-    if (this.instance) {
-      return this.instance
+    if (!this.instance) {
+      this.instance = this
+      this.crmClient = new CRMClient()
     }
-
-    this.instance = this
-    this.crmClient = new CRMClient()
-
-    return true
   }
 
   async connect () {
