@@ -30,7 +30,8 @@ axiosInstance.interceptors.response.use(response => (
   response
 ), async (err) => {
   const originalRequest = err.config
-  if (err.response?.status === 401 && !originalRequest._retry) {
+  const unauthorizedStatusCode = 401
+  if (err.response?.status === unauthorizedStatusCode && !originalRequest._retry) {
     originalRequest._retry = true
 
     const token = await getAccessToken()

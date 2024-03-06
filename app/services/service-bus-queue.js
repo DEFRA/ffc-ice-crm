@@ -3,6 +3,9 @@ const { delay, ServiceBusClient } = require('@azure/service-bus')
 
 const CRMClient = require('./crm-client')
 
+const CONNECTION_RETRIES = 5
+const RETRY_DELAY = 5000
+
 class ServiceBusQueue {
   static instance
 
@@ -16,11 +19,13 @@ class ServiceBusQueue {
 
     this.instance = this
     this.crmClient = new CRMClient()
+
+    return true
   }
 
   async connect () {
     try {
-      await this.connectToServiceBus(5)
+      await this.connectToServiceBus(CONNECTION_RETRIES)
       await this.subscribeToQueue(process.env.CASE_DETAILS_QUEUE)
     } catch (err) {
       console.log(err)
@@ -39,18 +44,20 @@ class ServiceBusQueue {
       let skipRetry = false
       const currentAttempt = connectionAttempt + 1
 
+      const logSuccessMessage = 'Successfully connected to Azure Service Bus!'
+
       try {
         if (connectionString) {
           this.serviceBusClient = new ServiceBusClient(connectionString)
-          console.log('Successfully connected to Azure Service Bus!')
+          console.log(logSuccessMessage)
           return
         } else if (host && username && password) {
           this.serviceBusClient = new ServiceBusClient(`Endpoint=sb://${host}/;SharedAccessKeyName=${username};SharedAccessKey=${password}`)
-          console.log('Successfully connected to Azure Service Bus!')
+          console.log(logSuccessMessage)
           return
         } else if (host) {
           this.serviceBusClient = new ServiceBusClient(host, new DefaultAzureCredential())
-          console.log('Successfully connected to Azure Service Bus!')
+          console.log(logSuccessMessage)
           return
         } else {
           skipRetry = true
@@ -66,7 +73,7 @@ class ServiceBusQueue {
           throw new Error(err)
         }
 
-        await delay(5000)
+        await delay(RETRY_DELAY)
 
         connectionAttempt++
       }
@@ -85,8 +92,8 @@ class ServiceBusQueue {
       }
 
       receiver.subscribe({
-        processMessage: async (message) => await this.processQueueMessage(message, receiver),
-        processError: async (err) => await this.handleError(err)
+        processMessage: async (message) => this.processQueueMessage(message, receiver),
+        processError: async (err) => this.handleError(err)
       }, {
         autoCompleteMessages: false
       })
