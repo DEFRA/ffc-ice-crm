@@ -163,8 +163,7 @@ class ServiceBusQueue {
       const crmCase = await this.crmClient.createCase(organisationId, contactId)
       console.log('Case response', crmCase.status)
       const caseUrl = crmCase.headers['odata-entityid']
-      const regex = /\((.*?)\)/
-      caseId = caseUrl.match(regex)[1]
+      const caseId = caseUrl.substring(caseUrl.length - 37, caseUrl.length - 1)
       console.log('Case ID', caseId)
       if (!caseId) {
         throw new Error('Could not find caseId')
