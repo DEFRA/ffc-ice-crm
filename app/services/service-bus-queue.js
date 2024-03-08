@@ -68,7 +68,7 @@ class ServiceBusQueue {
         )
 
         if (currentAttempt === retryAttempts || skipRetry) {
-          throw new Error(err)
+          throw err
         }
 
         await delay(RETRY_DELAY)
@@ -91,10 +91,11 @@ class ServiceBusQueue {
 
       receiver.subscribe({
         processMessage: async (message) => this.processQueueMessage(message, receiver),
-        processError: async (err) => this.handleError(err)
+        processError: async (err) => this.crmClient.handleError(err)
       }, {
         autoCompleteMessages: false
       })
+      console.log(`Started listening for messages on queue: ${queueName}`)
     } catch (err) {
       console.error('Error setting up message receiver:', err)
     }
@@ -102,99 +103,100 @@ class ServiceBusQueue {
 
   async processQueueMessage (
     message,
-    receiver,
-    retryAttempts = 0
+    receiver
   ) {
     try {
       const { body } = message
-      console.log(`${receiver.entityPath}: Message received:`)
+
+      console.log(`Message received: ${receiver.entityPath}:`)
       console.log(body)
 
       await this.processMessageToCRM(body)
 
       await receiver.completeMessage(message)
-
-      return true
+      console.log('Message completed')
     } catch (err) {
-      if (retryAttempts > 0) {
-        console.log(
-          `Retry message processing (${retryAttempts} attempts remaining)`,
-          err
-        )
-        return this.processQueueMessage(message, receiver, retryAttempts - 1)
-      } else {
-        console.error('Moving message to Dead-letter Queue:', err)
-        await receiver.deadLetterMessage(message)
-        return false
-      }
+      console.log('Sending error message to CRM')
+      await this.crmClient.handleError(err)
+
+      console.log('Moving message to Dead-letter Queue')
+      await receiver.deadLetterMessage(message)
+      return false
     }
   }
 
   async processMessageToCRM (body) {
-    const { sbi, frn, submissionId, submissionDateTime } = body
+    const { frn, crn, submissionId, submissionDateTime, type } = body
 
     let organisationId
     let contactId
     let caseId
 
+    let logMessage = ''
+    let lastStatusCode
+
     try {
-      const organisation = await this.crmClient.checkOrganisation(sbi)
+      const organisation = await this.crmClient.checkOrganisation(frn)
       organisationId = organisation.data.value[0].accountid
-      console.log('Organisation ID', organisationId)
+
+      lastStatusCode = organisation.status
+      logMessage += `Organisation ID: ${organisationId} - Status Code: ${organisation.status}`
+
       if (!organisationId) {
         throw new Error('Could not find organisationId')
       }
-    } catch (err) {
-      console.error('Could not get organisation ID', err)
-      throw new Error(err)
-    }
 
-    try {
-      const contact = await this.crmClient.checkContact(frn)
+      const contact = await this.crmClient.checkContact(crn)
       contactId = contact.data.value[0].contactid
-      console.log('Contact ID', contactId)
-      if (!contactId) {
+
+      lastStatusCode = contact.status
+      logMessage += `\nContact ID: ${contactId} - Status Code: ${contact.status}`
+
+      if (contactId) {
         throw new Error('Could not find contactId')
       }
-    } catch (err) {
-      console.error('Could not get contact ID', err)
-      throw new Error(err)
-    }
 
-    try {
-      const crmCase = await this.crmClient.createCase(organisationId, contactId)
-      console.log('Case response', crmCase.status)
+      const crmCase = await this.crmClient.createCase(
+        organisationId,
+        contactId,
+        submissionId,
+        type
+      )
+
+      lastStatusCode = crmCase.status
+      logMessage += `\nCase - Status Code: ${crmCase.status}`
+
       const caseUrl = crmCase.headers['odata-entityid']
       caseId = caseUrl.substring(
         caseUrl.length - HEADER_SUBSTRING_START,
         caseUrl.length - HEADER_SUBSTRING_END
       )
-      console.log('Case ID', caseId)
+
+      logMessage += `\nCase ID: ${caseId}`
+
       if (!caseId) {
         throw new Error('Could not find caseId')
       }
-    } catch (err) {
-      console.error(`Could not get create case for ${body}:`, err)
-      throw new Error(err)
-    }
 
-    try {
       const crmActivity = await this.crmClient.createOnlineSubmissionActivity(
         caseId,
         organisationId,
         contactId,
         submissionId,
-        submissionDateTime
+        submissionDateTime,
+        type
       )
-      console.log('Activity response', crmActivity.status)
-    } catch (err) {
-      console.error(`Could not get create online submission activity for ${JSON.stringify(body)}:`, err)
-      throw new Error(err)
-    }
-  }
 
-  async handleError (err) {
-    return console.log(err)
+      lastStatusCode = crmCase.status
+      logMessage += `\nOnline Submission Activity - Status Code: ${crmActivity.status}`
+      console.log('Message processed to CRM')
+    } catch (err) {
+      err.submissionId = submissionId
+      err.statusCode = lastStatusCode
+      err.log = logMessage
+      console.error('Could not process message to CRM:', err)
+      throw err
+    }
   }
 }
 
