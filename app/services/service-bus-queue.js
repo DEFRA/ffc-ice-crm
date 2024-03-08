@@ -115,6 +115,7 @@ class ServiceBusQueue {
 
       await receiver.completeMessage(message)
       console.log('Message completed')
+      return true
     } catch (err) {
       console.log('Sending error message to CRM')
       await this.crmClient.handleError(err)
