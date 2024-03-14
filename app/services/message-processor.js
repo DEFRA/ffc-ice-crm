@@ -130,7 +130,11 @@ class MessageProcessorService {
   }
 
   async processMessageToCRM (body) {
+<<<<<<< Updated upstream
     const { frn, crn, submissionId, submissionDateTime, type } = body
+=======
+    const { frn, crn, SubmissionId, submissionDateTime, type } = body
+>>>>>>> Stashed changes
 
     let organisationId
     let contactId
@@ -163,7 +167,11 @@ class MessageProcessorService {
       const crmCase = await this.#crmClient.createCase(
         organisationId,
         contactId,
+<<<<<<< Updated upstream
         submissionId,
+=======
+        SubmissionId,
+>>>>>>> Stashed changes
         type
       )
 
@@ -186,7 +194,11 @@ class MessageProcessorService {
         caseId,
         organisationId,
         contactId,
+<<<<<<< Updated upstream
         submissionId,
+=======
+        SubmissionId,
+>>>>>>> Stashed changes
         submissionDateTime,
         type
       )
@@ -195,7 +207,11 @@ class MessageProcessorService {
       logMessage += `\nOnline Submission Activity - Status Code: ${crmActivity.status}`
       console.log('Message processed to CRM')
     } catch (err) {
+<<<<<<< Updated upstream
       err.submissionId = submissionId
+=======
+      err.submissionId = SubmissionId
+>>>>>>> Stashed changes
       err.statusCode = lastStatusCode
       err.log = logMessage
       console.error('Could not process message to CRM:', err)
