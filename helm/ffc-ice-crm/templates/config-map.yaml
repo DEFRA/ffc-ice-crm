@@ -1,0 +1,11 @@
+{{- include "ffc-helm-library.container-config-map" (list . "ffc-ice-crm.config-map") -}}
+{{- define "ffc-ice-crm.config-map" -}}
+data:
+  NODE_ENV: {{ quote .Values.environment }}
+  PORT: {{ quote .Values.container.port }}
+  APPINSIGHTS_CLOUDROLE: {{ quote .Values.name }}
+  CRM_API_HOST: {{ quote .Values.container.crmApiHost }}
+  CRM_API_URL: {{ quote .Values.container.crmApiUrl }}
+  SERVICE_BUS_HOST: {{ quote .Values.container.serviceBusHost }}
+  CASE_DETAILS_QUEUE: {{ quote .Values.container.caseDetailsQueue }}
+{{- end -}}
