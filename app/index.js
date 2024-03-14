@@ -1,13 +1,12 @@
 require('dotenv').config()
 const server = require('./server')
-const ServiceBusQueue = require('./services/service-bus-queue')
+const MessageProcessorService = require('./services/message-processor')
 
 const init = async () => {
   await server.start()
   console.log('Server running on %s', server.info.uri)
 
-  const sbQueue = new ServiceBusQueue()
-  await sbQueue.connect()
+  MessageProcessorService.getInstance()
 }
 
 process.on('unhandledRejection', (err) => {
@@ -16,3 +15,5 @@ process.on('unhandledRejection', (err) => {
 })
 
 init()
+
+module.exports = init
