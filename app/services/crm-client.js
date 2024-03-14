@@ -24,16 +24,21 @@ class CRMClient {
     return this.api.get(path)
   }
 
-  async createCase (organisationId, contactId) {
+  async createCase (
+    organisationId,
+    contactId,
+    submissionId,
+    type
+  ) {
     const data = {
-      caseorigincode: '100000002', // valid for crm test env
-      casetypecode: '927350013', // valid for crm test environment
+      caseorigincode: process.env.CASE_ORIGIN_CODE,
+      casetypecode: process.env.CASE_TYPE_CODE,
       'customerid_contact@odata.bind': `/contacts(${contactId})`,
       'rpa_Contact@odata.bind': `/contacts(${contactId})`,
       'rpa_Organisation@odata.bind': `/accounts(${organisationId})`,
       rpa_isunknowncontact: false,
       rpa_isunknownorganisation: false,
-      title: 'Online Submission - Bank Account Update' // + fileSubmission.uosr // from crm message
+      title: `${type} (${submissionId})`
     }
 
     return this.api.post('/incidents?$select=incidentid,ticketnumber', data)
@@ -44,12 +49,13 @@ class CRMClient {
     organisationId,
     contactId,
     submissionId,
-    submissionDateTime
+    submissionDateTime,
+    type
   ) {
     const data = {
       'regardingobjectid_incident_rpa_onlinesubmission@odata.bind': `/incidents(${caseId})`,
-      'rpa_SubmissionType_rpa_onlinesubmission@odata.bind': '/rpa_documenttypeses(db363964-c906-ee11-8f6e-0022489ede2f)', // hardcoded, will be provided by crm team, move to env
-      rpa_filesinsubmission: '0', // hardcode for now
+      'rpa_SubmissionType_rpa_onlinesubmission@odata.bind': `/rpa_documenttypeses(${process.env.RPA_DOCUMENT_TYPES_ES})`,
+      rpa_filesinsubmission: process.env.RPA_FILES_IN_SUBMISSION,
       rpa_onlinesubmission_activity_parties: [
         {
           participationtypemask: 1,
@@ -61,18 +67,23 @@ class CRMClient {
         }
       ],
       rpa_onlinesubmissiondate: new Date(submissionDateTime).toISOString(),
-      rpa_onlinesubmissionid: submissionId, // or fileSubmission.uosr?
-      subject: 'Online Submission Activity - Bank Account Update' // + fileSubmission.uosr"
+      rpa_onlinesubmissionid: `${submissionId}`,
+      subject: `${type} (${submissionId})`
     }
 
     return this.api.post('/rpa_onlinesubmissions', data)
   }
 
-  async handleError () {
+  async handleError (error) {
+    const errorMessage = {
+      stack: error.stack,
+      ...error
+    }
+
     const data = {
-      rpa_name: '@{triggerBody().workflowRunId}',
-      rpa_processingentity: "@{if(startsWith(toLower(triggerBody().callingWorkflowName),'rle'), 927350005, 927350006)}",
-      rpa_xmlmessage: "Failed workflow: @{triggerBody().callingWorkflowName} \nFailed run: @{concat('https://portal.azure.com/#blade/Microsoft_Azure_EMA/DesignerEditor.ReactView/id/', encodeUriComponent(concat('/subscriptions/',appsetting('WORKFLOWS_SUBSCRIPTION_ID'), '/resourceGroups/', appsetting('WORKFLOWS_RESOURCE_GROUP_NAME'),'/providers/Microsoft.Web/sites/',appsetting('WORKFLOWS_LOGIC_APP_NAME'),'/workflows/',triggerBody().callingWorkflowName)),'/location/',appsetting('WORKFLOWS_LOCATION_NAME'),'/isReadOnly/true/isMonitoringView/true/runId/',triggerBody().workflowRunId)} \nError text: @{triggerBody().progressText} @{outputs('Strip_sensitive_data')}"
+      rpa_name: error.submissionId,
+      rpa_processingentity: process.env.RPA_PROCESSING_ENTITY,
+      rpa_xmlmessage: JSON.stringify(errorMessage)
     }
 
     return this.api.post('/rpa_integrationinboundqueues', data)

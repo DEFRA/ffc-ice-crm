@@ -8,4 +8,8 @@ data:
   CRM_API_URL: {{ quote .Values.container.crmApiUrl }}
   SERVICE_BUS_HOST: {{ quote .Values.container.serviceBusHost }}
   CASE_DETAILS_QUEUE: {{ quote .Values.container.caseDetailsQueue }}
+  CASE_ORIGIN_CODE: {{ quote .Values.container.caseOriginCode }}
+  CASE_TYPE_CODE: {{ quote .Values.container.caseTypeCode }}
+  RPA_FILES_IN_SUBMISSION: {{ quote .Values.container.rpaFilesInSubmission }}
+  RPA_PROCESSING_ENTITY: {{ quote .Values.container.rpaProcessingEntity }}
 {{- end -}}
