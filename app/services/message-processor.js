@@ -8,17 +8,23 @@ const RETRY_DELAY = 5000
 const HEADER_SUBSTRING_START = 37
 const HEADER_SUBSTRING_END = 1
 
-class ServiceBusQueue {
+class MessageProcessorService {
   static instance
 
-  serviceBusClient
-  crmClient
+  #serviceBusClient
+  #crmClient = new CRMClient()
+  #receiver
 
   constructor () {
+    this.connect()
+  }
+
+  static getInstance () {
     if (!this.instance) {
-      this.instance = this
-      this.crmClient = new CRMClient()
+      this.instance = new MessageProcessorService()
     }
+
+    return this.instance
   }
 
   async connect () {
@@ -46,15 +52,15 @@ class ServiceBusQueue {
 
       try {
         if (connectionString) {
-          this.serviceBusClient = new ServiceBusClient(connectionString)
+          this.#serviceBusClient = new ServiceBusClient(connectionString)
           console.log(logSuccessMessage)
           return
         } else if (host && username && password) {
-          this.serviceBusClient = new ServiceBusClient(`Endpoint=sb://${host}/;SharedAccessKeyName=${username};SharedAccessKey=${password}`)
+          this.#serviceBusClient = new ServiceBusClient(`Endpoint=sb://${host}/;SharedAccessKeyName=${username};SharedAccessKey=${password}`)
           console.log(logSuccessMessage)
           return
         } else if (host) {
-          this.serviceBusClient = new ServiceBusClient(host, new DefaultAzureCredential())
+          this.#serviceBusClient = new ServiceBusClient(host, new DefaultAzureCredential())
           console.log(logSuccessMessage)
           return
         } else {
@@ -80,18 +86,18 @@ class ServiceBusQueue {
 
   async subscribeToQueue (queueName) {
     try {
-      const receiver = this.serviceBusClient?.createReceiver(queueName, {
+      this.#receiver = this.#serviceBusClient?.createReceiver(queueName, {
         receiveMode: 'peekLock'
       })
 
-      if (!receiver) {
+      if (!this.#receiver) {
         console.error(`ServiceBusClient: ${queueName} not initialised`)
         return
       }
 
-      receiver.subscribe({
-        processMessage: async (message) => this.processQueueMessage(message, receiver),
-        processError: async (err) => this.crmClient.handleError(err)
+      this.#receiver.subscribe({
+        processMessage: async (message) => this.processQueueMessage(message),
+        processError: async (err) => this.#crmClient.handleError(err)
       }, {
         autoCompleteMessages: false
       })
@@ -101,45 +107,44 @@ class ServiceBusQueue {
     }
   }
 
-  async processQueueMessage (
-    message,
-    receiver
-  ) {
+  async processQueueMessage (message) {
     try {
       const { body } = message
 
-      console.log(`Message received: ${receiver.entityPath}:`)
+      console.log(`Message received: ${this.#receiver.entityPath}:`)
       console.log(body)
 
       await this.processMessageToCRM(body)
 
-      await receiver.completeMessage(message)
+      await this.#receiver.completeMessage(message)
       console.log('Message completed')
       return true
     } catch (err) {
       console.log('Sending error message to CRM')
-      await this.crmClient.handleError(err)
+      await this.#crmClient.handleError(err)
 
       console.log('Moving message to Dead-letter Queue')
-      await receiver.deadLetterMessage(message)
+      await this.#receiver.deadLetterMessage(message)
       return false
     }
   }
 
   async processMessageToCRM (body) {
-    const { frn, crn, submissionId, submissionDateTime, type } = body
+    const { frn, crn, SubmissionId, submissionDateTime, type } = body
 
     let organisationId
     let contactId
     let caseId
+    let activityId
 
     let logMessage = ''
     let lastStatusCode
 
     try {
-      const organisation = await this.crmClient.checkOrganisation(frn)
+      const organisation = await this.#crmClient.checkOrganisation(frn)
       organisationId = organisation.data.value[0].accountid
 
+      console.log('Organisation ID:', organisationId)
       lastStatusCode = organisation.status
       logMessage += `Organisation ID: ${organisationId} - Status Code: ${organisation.status}`
 
@@ -147,25 +152,23 @@ class ServiceBusQueue {
         throw new Error('Could not find organisationId')
       }
 
-      const contact = await this.crmClient.checkContact(crn)
+      const contact = await this.#crmClient.checkContact(crn)
       contactId = contact.data.value[0].contactid
 
+      console.log('Contact ID:', contactId)
       lastStatusCode = contact.status
       logMessage += `\nContact ID: ${contactId} - Status Code: ${contact.status}`
 
-      if (contactId) {
+      if (!contactId) {
         throw new Error('Could not find contactId')
       }
 
-      const crmCase = await this.crmClient.createCase(
+      const crmCase = await this.#crmClient.createCase(
         organisationId,
         contactId,
-        submissionId,
+        SubmissionId,
         type
       )
-
-      lastStatusCode = crmCase.status
-      logMessage += `\nCase - Status Code: ${crmCase.status}`
 
       const caseUrl = crmCase.headers['odata-entityid']
       caseId = caseUrl.substring(
@@ -173,26 +176,36 @@ class ServiceBusQueue {
         caseUrl.length - HEADER_SUBSTRING_END
       )
 
-      logMessage += `\nCase ID: ${caseId}`
+      console.log('Case ID:', caseId)
+      lastStatusCode = crmCase.status
+      logMessage += `\nCase ID: ${caseId} - Status Code: ${crmCase.status}`
 
       if (!caseId) {
         throw new Error('Could not find caseId')
       }
 
-      const crmActivity = await this.crmClient.createOnlineSubmissionActivity(
+      const crmActivity = await this.#crmClient.createOnlineSubmissionActivity(
         caseId,
         organisationId,
         contactId,
-        submissionId,
+        SubmissionId,
         submissionDateTime,
         type
       )
 
-      lastStatusCode = crmCase.status
-      logMessage += `\nOnline Submission Activity - Status Code: ${crmActivity.status}`
+      const activityUrl = crmActivity.headers['odata-entityid']
+      activityId = activityUrl.substring(
+        activityUrl.length - HEADER_SUBSTRING_START,
+        activityUrl.length - HEADER_SUBSTRING_END
+      )
+
+      console.log('Activity ID:', activityId)
+      lastStatusCode = crmActivity.status
+      logMessage += `\nOnline Submission Activity ID: ${activityId} - Status Code: ${crmActivity.status}`
+
       console.log('Message processed to CRM')
     } catch (err) {
-      err.submissionId = submissionId
+      err.submissionId = SubmissionId
       err.statusCode = lastStatusCode
       err.log = logMessage
       console.error('Could not process message to CRM:', err)
@@ -201,4 +214,4 @@ class ServiceBusQueue {
   }
 }
 
-module.exports = ServiceBusQueue
+module.exports = MessageProcessorService
