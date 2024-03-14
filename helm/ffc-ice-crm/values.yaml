@@ -26,16 +26,21 @@ container:
   limitMemory: 100Mi
   limitCpu: 100m
   port: 3000
-  serviceBusConnectionString:  
-  serviceBusHost: SNDFFCINFSB1001.servicebus.windows.net
-  serviceBusUsername: 
-  serviceBusPassword: 
-  caseDetailsQueue: ffc-rpi-bao-casedetails
   crmApiHost:
   crmApiUrl:
   crmTenantID:
   crmClientID:
   crmClientSecret:
+  serviceBusConnectionString:  
+  serviceBusHost: SNDFFCINFSB1001.servicebus.windows.net
+  serviceBusUsername: 
+  serviceBusPassword: 
+  caseDetailsQueue: ffc-rpi-bao-casedetails
+  caseOriginCode:
+  caseTypeCode:
+  rpaDocumentTypesEs:
+  rpaFilesInSubmission: 0
+  rpaProcessingEntity:
 
 livenessProbe:
   path: /healthz
