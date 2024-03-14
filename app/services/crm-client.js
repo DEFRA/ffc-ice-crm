@@ -1,27 +1,16 @@
 const api = require('./api')
 
 class CRMClient {
-  static instance
-
-  api
-
-  constructor () {
-    if (!this.instance) {
-      this.instance = this
-      this.api = api
-    }
-  }
-
   async checkOrganisation (id) {
     const path = encodeURI(`/accounts?$select=name,accountid,rpa_sbinumber,rpa_capfirmid&$filter=rpa_capfirmid eq '${id}'`)
 
-    return this.api.get(path)
+    return api.get(path)
   }
 
   async checkContact (id) {
     const path = encodeURI(`/contacts?$select=contactid,fullname,rpa_capcustomerid&$filter=rpa_capcustomerid eq '${id}'`)
 
-    return this.api.get(path)
+    return api.get(path)
   }
 
   async createCase (
@@ -41,7 +30,7 @@ class CRMClient {
       title: `${type} (${submissionId})`
     }
 
-    return this.api.post('/incidents?$select=incidentid,ticketnumber', data)
+    return api.post('/incidents?$select=incidentid,ticketnumber', data)
   }
 
   async createOnlineSubmissionActivity (
@@ -71,7 +60,7 @@ class CRMClient {
       subject: `${type} (${submissionId})`
     }
 
-    return this.api.post('/rpa_onlinesubmissions', data)
+    return api.post('/rpa_onlinesubmissions', data)
   }
 
   async handleError (error) {
@@ -86,7 +75,7 @@ class CRMClient {
       rpa_xmlmessage: JSON.stringify(errorMessage)
     }
 
-    return this.api.post('/rpa_integrationinboundqueues', data)
+    return api.post('/rpa_integrationinboundqueues', data)
   }
 }
 
