@@ -144,7 +144,7 @@ class MessageProcessorService {
       const organisation = await this.#crmClient.checkOrganisation(frn)
       organisationId = organisation.data.value[0].accountid
 
-      console.log('Organisatoin ID:', organisationId)
+      console.log('Organisation ID:', organisationId)
       lastStatusCode = organisation.status
       logMessage += `Organisation ID: ${organisationId} - Status Code: ${organisation.status}`
 
