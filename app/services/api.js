@@ -21,10 +21,7 @@ axiosInstance.interceptors.request.use(async config => {
   config._tokenExpiry = token.expiresOn
 
   return config
-},
-err => {
-  Promise.reject(err)
-})
+}, err => Promise.reject(err))
 
 axiosInstance.interceptors.response.use(response => (
   response
@@ -41,7 +38,11 @@ axiosInstance.interceptors.response.use(response => (
 
     return axiosInstance(originalRequest)
   }
-  return Promise.reject(err.response?.statusText)
+
+  const error = new Error(err.response?.statusText)
+  error.status = err.response?.status
+  error.error = err.response?.data?.error
+  return Promise.reject(error)
 })
 
 module.exports = axiosInstance
