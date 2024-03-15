@@ -39,6 +39,7 @@ class CRMClient {
     contactId,
     submissionId,
     submissionDateTime,
+    holdStatus,
     type
   ) {
     const data = {
@@ -57,6 +58,7 @@ class CRMClient {
       ],
       rpa_onlinesubmissiondate: new Date(submissionDateTime).toISOString(),
       rpa_onlinesubmissionid: `${submissionId}`,
+      rpa_holdstatus: holdStatus,
       subject: `${type} (${submissionId})`
     }
 

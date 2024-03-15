@@ -130,7 +130,7 @@ class MessageProcessorService {
   }
 
   async processMessageToCRM (body) {
-    const { frn, crn, SubmissionId, submissionDateTime, type } = body
+    const { frn, crn, SubmissionId, submissionDateTime, holdStatus, type } = body
 
     let organisationId
     let contactId
@@ -142,7 +142,7 @@ class MessageProcessorService {
 
     try {
       const organisation = await this.#crmClient.checkOrganisation(frn)
-      organisationId = organisation.data.value[0].accountid
+      organisationId = organisation.data.value?.[0]?.accountid
 
       console.log('Organisation ID:', organisationId)
       lastStatusCode = organisation.status
@@ -153,7 +153,7 @@ class MessageProcessorService {
       }
 
       const contact = await this.#crmClient.checkContact(crn)
-      contactId = contact.data.value[0].contactid
+      contactId = contact.data.value?.[0]?.contactid
 
       console.log('Contact ID:', contactId)
       lastStatusCode = contact.status
@@ -190,6 +190,7 @@ class MessageProcessorService {
         contactId,
         SubmissionId,
         submissionDateTime,
+        holdStatus,
         type
       )
 
