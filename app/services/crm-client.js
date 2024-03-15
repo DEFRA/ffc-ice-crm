@@ -58,8 +58,11 @@ class CRMClient {
       ],
       rpa_onlinesubmissiondate: new Date(submissionDateTime).toISOString(),
       rpa_onlinesubmissionid: `${submissionId}`,
-      rpa_holdstatus: holdStatus,
       subject: `${type} (${submissionId})`
+    }
+
+    if (holdStatus === 'rpa_holdstatus1') {
+      data.rpa_holdstatus1 = true
     }
 
     return api.post('/rpa_onlinesubmissions', data)
