@@ -120,7 +120,7 @@ class MessageProcessorService {
       console.log('Message completed')
       return true
     } catch (err) {
-      console.log('Sending error message to CRM')
+      console.log('Sending error to CRM')
       await this.#crmClient.handleError(err)
 
       console.log('Moving message to Dead-letter Queue')
@@ -138,29 +138,26 @@ class MessageProcessorService {
     let activityId
 
     let logMessage = ''
-    let lastStatusCode
 
     try {
       const organisation = await this.#crmClient.checkOrganisation(frn)
       organisationId = organisation.data.value?.[0]?.accountid
 
       console.log('Organisation ID:', organisationId)
-      lastStatusCode = organisation.status
-      logMessage += `Organisation ID: ${organisationId} - Status Code: ${organisation.status}`
+      logMessage += `Organisation ID: ${organisationId}.`
 
       if (!organisationId) {
-        throw new Error('Could not find organisationId')
+        throw new Error('Could not find accountid')
       }
 
       const contact = await this.#crmClient.checkContact(crn)
       contactId = contact.data.value?.[0]?.contactid
 
       console.log('Contact ID:', contactId)
-      lastStatusCode = contact.status
-      logMessage += `\nContact ID: ${contactId} - Status Code: ${contact.status}`
+      logMessage += ` Contact ID: ${contactId}.`
 
       if (!contactId) {
-        throw new Error('Could not find contactId')
+        throw new Error('Could not find contactid')
       }
 
       const crmCase = await this.#crmClient.createCase(
@@ -177,11 +174,10 @@ class MessageProcessorService {
       )
 
       console.log('Case ID:', caseId)
-      lastStatusCode = crmCase.status
-      logMessage += `\nCase ID: ${caseId} - Status Code: ${crmCase.status}`
+      logMessage += ` Case ID: ${caseId}.`
 
       if (!caseId) {
-        throw new Error('Could not find caseId')
+        throw new Error('Could not find case id: odata-entityid')
       }
 
       const crmActivity = await this.#crmClient.createOnlineSubmissionActivity(
@@ -201,13 +197,15 @@ class MessageProcessorService {
       )
 
       console.log('Activity ID:', activityId)
-      lastStatusCode = crmActivity.status
-      logMessage += `\nOnline Submission Activity ID: ${activityId} - Status Code: ${crmActivity.status}`
+      logMessage += ` Online Submission Activity ID: ${activityId}.`
+
+      if (!activityId) {
+        throw new Error('Could not find activity id: odata-entityid')
+      }
 
       console.log('Message processed to CRM')
     } catch (err) {
       err.submissionId = SubmissionId
-      err.statusCode = lastStatusCode
       err.log = logMessage
       console.error('Could not process message to CRM:', err)
       throw err
