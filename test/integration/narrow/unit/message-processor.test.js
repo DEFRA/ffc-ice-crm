@@ -33,7 +33,6 @@ jest.mock('@azure/identity', () => ({
 jest.mock('axios', () => ({
   create: jest.fn(() => ({
     get: jest.fn((url) => {
-      console.log('url', url)
       if (url.indexOf('undefined') < 0) {
         return {
           data: {
@@ -181,7 +180,8 @@ describe('MessageProcessorService', () => {
             crn: 'crn',
             SubmissionId: 'SubmissionId',
             submissionDateTime: new Date(),
-            type: 'type'
+            type: 'type',
+            holdStatus: 'rpa_holdstatus1'
           })
 
           expect(processMessageToCRMSpy).toHaveBeenCalledTimes(1)
@@ -195,7 +195,7 @@ describe('MessageProcessorService', () => {
             SubmissionId: 'SubmissionId',
             submissionDateTime: new Date(),
             type: 'type'
-          })).rejects.toThrowError()
+          })).rejects.toThrowError('Could not find accountid')
 
           expect(processMessageToCRMSpy).toHaveBeenCalledTimes(1)
         })
@@ -208,7 +208,7 @@ describe('MessageProcessorService', () => {
             SubmissionId: 'SubmissionId',
             submissionDateTime: new Date(),
             type: 'type'
-          })).rejects.toThrowError()
+          })).rejects.toThrowError('Could not find contactid')
 
           expect(processMessageToCRMSpy).toHaveBeenCalledTimes(1)
         })
