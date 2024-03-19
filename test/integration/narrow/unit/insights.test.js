@@ -40,9 +40,10 @@ describe('App Insights Setup', () => {
   test('should console log when APPINSIGHTS_CONNECTIONSTRING is not provided', () => {
     delete process.env.APPINSIGHTS_CONNECTIONSTRING
     delete process.env.APPINSIGHTS_CLOUDROLE
+
     const setupSpy = jest.spyOn(appInsights, 'setup')
     setup()
-    expect(setupSpy).toHaveBeenCalled()
+    expect(setupSpy).toHaveBeenCalledTimes(0)
   })
 
   afterAll(() => {
