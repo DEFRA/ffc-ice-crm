@@ -1,7 +1,7 @@
 const { ConfidentialClientApplication } = require('@azure/msal-node')
 
 const isValidAccessToken = config => config.headers.Authorization &&
-  config._tokenExpiry.getTime() < Date.now()
+  config._tokenExpiry?.getTime() > Date.now()
 
 const getAccessToken = async () => {
   try {
