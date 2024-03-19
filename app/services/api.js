@@ -17,7 +17,7 @@ axiosInstance.interceptors.request.use(async config => {
 
   const token = await getAccessToken()
 
-  config.headers.Authorization = `Bearer ${token.accessToken}`
+  config.headers.common.Authorization = `Bearer ${token.accessToken}`
   config._tokenExpiry = token.expiresOn
 
   return config
