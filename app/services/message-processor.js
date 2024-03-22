@@ -197,7 +197,7 @@ class MessageProcessorService {
       )
 
       console.log('Activity ID :', activityId)
-      logMessage += ` Online Submission Activity ID: ${activityId}.`
+      logMessage += `Online Submission Activity ID: ${activityId}.`
 
       if (!activityId) {
         throw new Error('Could not find activity id: odata-entityid')
