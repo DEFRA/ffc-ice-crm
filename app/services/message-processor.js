@@ -196,7 +196,7 @@ class MessageProcessorService {
         activityUrl.length - HEADER_SUBSTRING_END
       )
 
-      console.log('Activity ID:', activityId)
+      console.log('Activity ID :', activityId)
       logMessage += ` Online Submission Activity ID: ${activityId}.`
 
       if (!activityId) {
