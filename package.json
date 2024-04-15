@@ -1,6 +1,6 @@
 {
   "name": "ffc-ice-crm",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "CRM Microservice",
   "homepage": "https://github.com/DEFRA/ffc-ice-crm",
   "main": "app/index.js",
