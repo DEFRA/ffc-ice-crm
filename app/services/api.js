@@ -17,7 +17,7 @@ axiosInstance.interceptors.request.use(async config => {
 
   const token = await getAccessToken()
 
-  config.headers.common.Authorization = `Bearer ${token.accessToken}`
+  config.headers.Authorization = `Bearer ${token.accessToken}`
   config._tokenExpiry = token.expiresOn
 
   return config
@@ -33,13 +33,13 @@ axiosInstance.interceptors.response.use(response => (
 
     const token = await getAccessToken()
 
-    axios.defaults.headers.common.Authorization = `Bearer ${token.accessToken}`
+    axios.defaults.headers.Authorization = `Bearer ${token.accessToken}`
     axios.defaults._tokenExpiry = token.expiresOn
 
     return axiosInstance(originalRequest)
   }
 
-  const error = new Error(err.response?.statusText)
+  const error = new Error(err.response?.statusText || err.message)
   error.status = err.response?.status
   error.error = err.response?.data?.error
   return Promise.reject(error)

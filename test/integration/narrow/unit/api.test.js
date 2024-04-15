@@ -36,30 +36,26 @@ describe('api.js', () => {
         const result = await apiInstance.interceptors.request.handlers[0].fulfilled({
           isValidAccessToken: true,
           headers: {
-            common: {
-              Authorization: 'Bearer valid_token'
-            }
+            Authorization: 'Bearer valid_token'
           }
         })
 
         expect(isValidAccessToken.mock.calls.length).toBe(1)
         expect(getAccessToken.mock.calls.length).toBe(0)
-        expect(result.headers.common.Authorization).toEqual('Bearer valid_token')
+        expect(result.headers.Authorization).toEqual('Bearer valid_token')
       })
 
       test('should get new access token if token is invalid', async () => {
         const result = await apiInstance.interceptors.request.handlers[0].fulfilled({
           isValidAccessToken: false,
           headers: {
-            common: {
-              Authorization: 'Bearer invalid_token'
-            }
+            Authorization: 'Bearer invalid_token'
           }
         })
 
         expect(isValidAccessToken.mock.calls.length).toBe(1)
         expect(getAccessToken.mock.calls.length).toBe(1)
-        expect(result.headers.common.Authorization).toEqual('Bearer valid_token')
+        expect(result.headers.Authorization).toEqual('Bearer valid_token')
         expect(result._tokenExpiry).toBeTruthy()
       })
 
@@ -70,9 +66,7 @@ describe('api.js', () => {
         await expect(apiInstance.interceptors.request.handlers[0].fulfilled({
           isValidAccessToken: false,
           headers: {
-            common: {
-              Authorization: 'Bearer invalid_token'
-            }
+            Authorization: 'Bearer invalid_token'
           }
         })).rejects.toThrowError('token_error')
 

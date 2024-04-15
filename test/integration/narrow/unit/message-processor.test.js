@@ -181,6 +181,9 @@ describe('MessageProcessorService', () => {
             SubmissionId: 'SubmissionId',
             submissionDateTime: new Date(),
             type: 'type',
+            listofCRNwithEmpowerment: [
+              '12345', 'crn', '123456'
+            ],
             holdStatus: 'rpa_holdstatus1'
           })
 
