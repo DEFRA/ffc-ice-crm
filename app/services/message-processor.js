@@ -155,10 +155,7 @@ class MessageProcessorService {
 
     const { frn, crn, SubmissionId, submissionDateTime, holdStatus, type, listofCRNwithEmpowerment } = body
 
-    let organisationId
-    let contactId
-    let caseId
-    let activityId
+    let organisationId, contactId, caseId, activityId
     const invalidCrns = []
     const validCrns = []
 
