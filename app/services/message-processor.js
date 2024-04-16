@@ -129,13 +129,35 @@ class MessageProcessorService {
     }
   }
 
-  async processMessageToCRM (body) {
-    const { frn, crn, SubmissionId, submissionDateTime, holdStatus, type } = body
+  async checkAdditionalCrns (listofCRNwithEmpowerment, validCrns, invalidCrns, logMessage, crn) {
+    console.log('in additional crns')
+    if (listofCRNwithEmpowerment?.length) {
+      const filteredCrns = listofCRNwithEmpowerment.filter((c) => c !== crn)
+      for (const c of filteredCrns) {
+        const result = await this.#crmClient.checkContact(c)
 
-    let organisationId
-    let contactId
-    let caseId
-    let activityId
+        if (result.data?.value?.[0]?.contactid) {
+          console.log('Contact ID for additional Crn:', result.data.value?.[0]?.contactid)
+          logMessage += ` Contact ID for additional Crn: ${result.data.value?.[0]?.contactid}.`
+          validCrns.push(result.data.value?.[0]?.contactid)
+        } else {
+          invalidCrns.push(c)
+          logMessage += `Invalid contact ID for additional Crn: ${c}.`
+        }
+      }
+    } else {
+      console.log('No additional crns found in payload')
+    }
+  }
+
+  async processMessageToCRM (body) {
+    console.log('received message with body', body)
+
+    const { frn, crn, SubmissionId, submissionDateTime, holdStatus, type, listofCRNwithEmpowerment } = body
+
+    let organisationId, contactId, caseId, activityId
+    const invalidCrns = []
+    const validCrns = []
 
     let logMessage = ''
 
@@ -180,14 +202,19 @@ class MessageProcessorService {
         throw new Error('Could not find case id: odata-entityid')
       }
 
+      await this.checkAdditionalCrns(listofCRNwithEmpowerment, validCrns, invalidCrns, logMessage, crn)
+
       const crmActivity = await this.#crmClient.createOnlineSubmissionActivity(
-        caseId,
-        organisationId,
-        contactId,
-        SubmissionId,
-        submissionDateTime,
-        holdStatus,
-        type
+        {
+          caseId,
+          organisationId,
+          contactId,
+          submissionId: SubmissionId,
+          submissionDateTime,
+          holdStatus,
+          type,
+          validCrns
+        }
       )
 
       const activityUrl = crmActivity.headers['odata-entityid']
@@ -201,6 +228,12 @@ class MessageProcessorService {
 
       if (!activityId) {
         throw new Error('Could not find activity id: odata-entityid')
+      }
+
+      if (invalidCrns?.length) {
+        await this.#crmClient.handleError({ stack: 'Invalid additional Crns', submissionId: SubmissionId, message: `Could not find contact ids for the following additional crns : ${invalidCrns}` })
+      } else {
+        logMessage += 'No Invalid additional crns found'
       }
 
       console.log('Message processed to CRM')

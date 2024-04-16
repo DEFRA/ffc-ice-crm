@@ -3,7 +3,6 @@ const api = require('./api')
 class CRMClient {
   async checkOrganisation (id) {
     const path = encodeURI(`/accounts?$select=name,accountid,rpa_sbinumber,rpa_capfirmid&$filter=rpa_capfirmid eq '${id}'`)
-
     return api.get(path)
   }
 
@@ -33,15 +32,9 @@ class CRMClient {
     return api.post('/incidents?$select=incidentid,ticketnumber', data)
   }
 
-  async createOnlineSubmissionActivity (
-    caseId,
-    organisationId,
-    contactId,
-    submissionId,
-    submissionDateTime,
-    holdStatus,
-    type
-  ) {
+  async createOnlineSubmissionActivity (body) {
+    const { caseId, organisationId, contactId, submissionId, submissionDateTime, holdStatus, type, validCrns } = body
+
     const data = {
       'regardingobjectid_incident_rpa_onlinesubmission@odata.bind': `/incidents(${caseId})`,
       'rpa_SubmissionType_rpa_onlinesubmission@odata.bind': `/rpa_documenttypeses(${process.env.RPA_DOCUMENT_TYPES_ES})`,
@@ -63,6 +56,15 @@ class CRMClient {
 
     if (holdStatus === 'rpa_holdstatus1') {
       data.rpa_holdstatus1 = true
+    }
+
+    if (validCrns?.length) {
+      for (const c of validCrns) {
+        data.rpa_onlinesubmission_activity_parties.push({
+          participationtypemask: 2,
+          'partyid_contact@odata.bind': `/contacts(${c})`
+        })
+      }
     }
 
     return api.post('/rpa_onlinesubmissions', data)

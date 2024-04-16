@@ -33,6 +33,18 @@ jest.mock('@azure/identity', () => ({
 jest.mock('axios', () => ({
   create: jest.fn(() => ({
     get: jest.fn((url) => {
+      if (url === "/contacts?$select=contactid,fullname,rpa_capcustomerid&$filter=rpa_capcustomerid%20eq%20'invalid'") {
+        return {
+          data: {
+            value: [
+              {
+                accountid: 'accountid'
+              }
+            ]
+          }
+        }
+      }
+
       if (url.indexOf('undefined') < 0) {
         return {
           data: {
@@ -172,7 +184,25 @@ describe('MessageProcessorService', () => {
       })
 
       describe('should send message to the CRM', () => {
-        test('should successfully send message to the CRM', async () => {
+        test('should successfully send message to the CRM with additional crns', async () => {
+          const processMessageToCRMSpy = jest.spyOn(service, 'processMessageToCRM')
+
+          await service.processMessageToCRM({
+            frn: 'frn',
+            crn: 'crn',
+            SubmissionId: 'SubmissionId',
+            submissionDateTime: new Date(),
+            type: 'type',
+            listofCRNwithEmpowerment: [
+              '12345', 'crn', '123456'
+            ],
+            holdStatus: 'rpa_holdstatus1'
+          })
+
+          expect(processMessageToCRMSpy).toHaveBeenCalledTimes(1)
+        })
+
+        test('should successfully send message to the CRM without additional crns', async () => {
           const processMessageToCRMSpy = jest.spyOn(service, 'processMessageToCRM')
 
           await service.processMessageToCRM({
@@ -182,6 +212,24 @@ describe('MessageProcessorService', () => {
             submissionDateTime: new Date(),
             type: 'type',
             holdStatus: 'rpa_holdstatus1'
+          })
+
+          expect(processMessageToCRMSpy).toHaveBeenCalledTimes(1)
+        })
+
+        test('should successfully send message to the CRM and find invalid additional crns', async () => {
+          const processMessageToCRMSpy = jest.spyOn(service, 'processMessageToCRM')
+
+          await service.processMessageToCRM({
+            frn: 'frn',
+            crn: 'crn',
+            SubmissionId: 'SubmissionId',
+            submissionDateTime: new Date(),
+            type: 'type',
+            holdStatus: 'rpa_holdstatus1',
+            listofCRNwithEmpowerment: [
+              'invalid'
+            ]
           })
 
           expect(processMessageToCRMSpy).toHaveBeenCalledTimes(1)
