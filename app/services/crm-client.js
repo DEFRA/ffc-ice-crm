@@ -54,8 +54,8 @@ class CRMClient {
       subject: `${type} (${submissionId})`
     }
 
-    if (holdStatus === 'rpa_holdstatus1') {
-      data.rpa_holdstatus1 = true
+    if (holdStatus) {
+      data.rpa_genericcontrol1 = holdStatus
     }
 
     if (validCrns?.length) {
