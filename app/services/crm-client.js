@@ -33,7 +33,7 @@ class CRMClient {
   }
 
   async createOnlineSubmissionActivity (body) {
-    const { caseId, organisationId, contactId, submissionId, submissionDateTime, holdStatus, type, validCrns } = body
+    const { caseId, organisationId, contactId, submissionId, submissionDateTime, holdStatus, type, validCrns, crmBankAccountNumber } = body
 
     const data = {
       'regardingobjectid_incident_rpa_onlinesubmission@odata.bind': `/incidents(${caseId})`,
@@ -51,6 +51,7 @@ class CRMClient {
       ],
       rpa_onlinesubmissiondate: new Date(submissionDateTime).toISOString(),
       rpa_onlinesubmissionid: `${submissionId}`,
+      rpa_genericcontrol2: `${crmBankAccountNumber}`,
       subject: `${type} (${submissionId})`
     }
 
