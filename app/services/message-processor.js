@@ -214,7 +214,8 @@ class MessageProcessorService {
           holdStatus,
           type,
           validCrns,
-          crmBankAccountNumber
+          crmBankAccountNumber,
+          invalidCrns
         }
       )
 
