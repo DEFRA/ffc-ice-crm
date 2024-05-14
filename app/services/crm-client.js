@@ -33,7 +33,7 @@ class CRMClient {
   }
 
   async createOnlineSubmissionActivity (body) {
-    const { caseId, organisationId, contactId, submissionId, submissionDateTime, holdStatus, type, validCrns, crmBankAccountNumber } = body
+    const { caseId, organisationId, contactId, submissionId, submissionDateTime, holdStatus, type, validCrns, crmBankAccountNumber, invalidCrns } = body
 
     const data = {
       'regardingobjectid_incident_rpa_onlinesubmission@odata.bind': `/incidents(${caseId})`,
@@ -66,6 +66,10 @@ class CRMClient {
           'partyid_contact@odata.bind': `/contacts(${c})`
         })
       }
+    }
+
+    if (invalidCrns?.length) {
+      data.rpa_genericerror1 = 'Invalid CRN(s)'
     }
 
     return api.post('/rpa_onlinesubmissions', data)
