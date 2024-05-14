@@ -151,8 +151,6 @@ class MessageProcessorService {
   }
 
   async processMessageToCRM (body) {
-    console.log('received message with body', body)
-
     const { frn, crn, SubmissionId, submissionDateTime, holdStatus, type, listofCRNwithEmpowerment, crmBankAccountNumber } = body
 
     let organisationId, contactId, caseId, activityId
