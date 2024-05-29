@@ -191,7 +191,7 @@ describe('MessageProcessorService', () => {
             frn: 'frn',
             crn: 'crn',
             SubmissionId: 'SubmissionId',
-            submissionDateTime: new Date(),
+            submissionDateTime: '23/05/2024 12:12:38',
             type: 'type',
             listofCRNwithEmpowerment: [
               '12345', 'crn', '123456'
@@ -209,7 +209,7 @@ describe('MessageProcessorService', () => {
             frn: 'frn',
             crn: 'crn',
             SubmissionId: 'SubmissionId',
-            submissionDateTime: new Date(),
+            submissionDateTime: '23/05/2024 12:12:38',
             type: 'type',
             holdStatus: 'rpa_holdstatus1'
           })
@@ -224,7 +224,7 @@ describe('MessageProcessorService', () => {
             frn: 'frn',
             crn: 'crn',
             SubmissionId: 'SubmissionId',
-            submissionDateTime: new Date(),
+            submissionDateTime: '23/05/2024 12:12:38',
             type: 'type',
             holdStatus: 'rpa_holdstatus1',
             listofCRNwithEmpowerment: [
@@ -241,7 +241,7 @@ describe('MessageProcessorService', () => {
           await expect(service.processMessageToCRM({
             crn: 'crn',
             SubmissionId: 'SubmissionId',
-            submissionDateTime: new Date(),
+            submissionDateTime: '23/05/2024 12:12:38',
             type: 'type'
           })).rejects.toThrowError('Could not find accountid')
 
@@ -254,7 +254,7 @@ describe('MessageProcessorService', () => {
           await expect(service.processMessageToCRM({
             frn: 'frn',
             SubmissionId: 'SubmissionId',
-            submissionDateTime: new Date(),
+            submissionDateTime: '23/05/2024 12:12:38',
             type: 'type'
           })).rejects.toThrowError('Could not find contactid')
 
