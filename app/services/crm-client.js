@@ -49,7 +49,7 @@ class CRMClient {
           'partyid_account@odata.bind': `/accounts(${organisationId})`
         }
       ],
-      rpa_onlinesubmissiondate: new Date(submissionDateTime).toISOString(),
+      rpa_onlinesubmissiondate: new Date(this.swapDateMonth(submissionDateTime)).toISOString(),
       rpa_onlinesubmissionid: `${submissionId}`,
       rpa_genericcontrol2: `${crmBankAccountNumber}`,
       subject: `${type} (${submissionId})`
@@ -73,6 +73,13 @@ class CRMClient {
     }
 
     return api.post('/rpa_onlinesubmissions', data)
+  }
+
+  swapDateMonth = date => {
+    const [datePart, timePart] = date.split(' ')
+    const [day, month, year] = datePart.split('/')
+    const newDate = `${month}/${day}/${year}`
+    return `${newDate} ${timePart}`
   }
 
   async handleError (error) {
