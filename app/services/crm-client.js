@@ -1,4 +1,5 @@
 const api = require('./api')
+const { trackException } = require('../insights')
 
 class CRMClient {
   async checkOrganisation (id) {
@@ -93,6 +94,8 @@ class CRMClient {
       rpa_processingentity: process.env.RPA_PROCESSING_ENTITY,
       rpa_xmlmessage: JSON.stringify(errorMessage)
     }
+
+    trackException(error)
 
     return api.post('/rpa_integrationinboundqueues', data)
   }
