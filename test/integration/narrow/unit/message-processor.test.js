@@ -1,5 +1,29 @@
 const MessageProcessorService = require('../../../../app/services/message-processor')
 
+jest.mock('applicationinsights', () => {
+  const startMock = jest.fn()
+
+  const mockedSetup = jest.fn((message) => {
+    const result = jest.fn(() => ({
+      start: startMock
+    }))
+    result.start = startMock
+    return result
+  })
+
+  return {
+    setup: mockedSetup,
+    start: startMock,
+    defaultClient: {
+      context: {
+        keys: { cloudRole: 'your_mocked_cloudRole' },
+        tags: {}
+      },
+      trackException: jest.fn()
+    }
+  }
+})
+
 jest.mock('@azure/service-bus', () => {
   const mockServiceBusClient = {
     createReceiver: jest.fn()
