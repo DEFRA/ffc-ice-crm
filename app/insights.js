@@ -16,8 +16,8 @@ const trackException = (error) => {
   if (appInsights.defaultClient) {
     try {
       appInsights.defaultClient.trackException({ exception: error })
-    } catch (error) {
-      console.log('Error tracking exception', error)
+    } catch (err) {
+      console.log('Error tracking exception', err)
     }
   }
 }
