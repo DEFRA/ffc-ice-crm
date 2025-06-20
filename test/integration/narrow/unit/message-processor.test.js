@@ -176,15 +176,6 @@ describe('MessageProcessorService', () => {
           await expect(service.connectToServiceBus()).rejects.toThrowError('Missing credentials to connect to Azure Service Bus')
           expect(connectToServiceBusSpy).toHaveBeenCalledTimes(1)
         })
-
-        test('should throw an error if credentials are invalid', async () => {
-          process.env.SERVICE_BUS_CONNECTION_STRING = 'invalid' // pragma: allowlist secret
-
-          const connectToServiceBusSpy = jest.spyOn(service, 'connectToServiceBus')
-
-          await expect(service.connectToServiceBus()).rejects.toThrowError()
-          expect(connectToServiceBusSpy).toHaveBeenCalledTimes(1)
-        })
       })
     })
 

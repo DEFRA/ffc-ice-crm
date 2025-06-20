@@ -1,0 +1,6 @@
+resources:
+  identity: ffc-ice-crm  
+  queues:    
+    - name: ffc-rpi-bao-casedetails
+      role: receiver  
+     
